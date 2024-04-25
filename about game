@@ -1,0 +1,36 @@
+This JavaScript code implements a simple interactive game involving draggable balls within a container. Let's break down the code step by step:
+Event Listener for DOM content loaded
+•	This event listener ensures that the script executes only after the HTML document has been fully loaded and parsed.
+•	The script begins by obtaining references to important elements in the HTML, such as the container where the balls will reside and an element to display the count of balls.
+
+Variables Implementation
+•	Is Dragging: A boolean variable to track whether a ball is being dragged.
+•	SelectedBall: A reference to the ball currently being dragged.
+•	Offset and OffsetY: Variables to store the offset between the mouse pointer and the selected ball's position when dragging starts.
+
+Event Listener for Mouse Events
+The script listens for mouse events (mousedown, mousemove, mouseup) on the container element.
+
+•	When a mousedown event occurs on a ball (target.classList.contains("ball")), it marks the ball as being dragged and calculates the offset between the mouse pointer and the ball's position.
+
+•	During mousemove, if a ball is being dragged (isDragging is true), it updates the position of the selected ball based on the mouse movement and the initial offset.
+
+•	Upon mouseup it resets the dragging state.
+
+Event Listener for Creating New Balls
+•	When the container is clicked (click event) and no ball is being dragged, a new ball is created at the click coordinates using the createBall function.
+
+Function to Create New Balls
+•	Increments the ball count.
+•	Creates a new <div> element representing the ball, sets its position, and appends it to the container.
+•	Adds the new ball to the balls array with a random initial velocity.
+
+Interval Function for Updating Balls Position
+
+•	This function runs every 20 milliseconds using setInterval.
+•	It iterates through each ball, updating its position based on its velocity.
+•	It applies gravity to each ball (y-component of velocity).
+•	It handles collisions with the container walls by reversing the velocity with some damping.
+•	It checks for collisions between balls using a nested loop and handles elastic collisions by adjusting their velocities based on collision normals and relative velocities.
+
+
