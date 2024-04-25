@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function() {
   let isDragging = false;
   let selectedBall = null;
   let offsetX, offsetY;
-
+  
   container.addEventListener("mousedown", function(event) {
     const target = event.target;
     if (target.classList.contains("ball")) {
@@ -49,60 +49,89 @@ document.addEventListener("DOMContentLoaded", function() {
     balls.push({ element: ball, velocity: { x: Math.random() * 4 - 2, y: Math.random() * 4 - 2 } });
   }
 
-  // Update ball positions and handle collisions
-  setInterval(() => {
-    balls.forEach(ball => {
+// Update ball positions and handle collisions
+setInterval(() => {
+  balls.forEach(ball => {
       const velocity = ball.velocity;
       const ballElement = ball.element;
 
-      if (!isDragging || ballElement !== selectedBall) {
-        velocity.y += 0.5 ; // Apply gravity
+      // Update ball position
+      let newX = parseInt(ballElement.style.left) + velocity.x;
+      let newY = parseInt(ballElement.style.top) + velocity.y;
 
-        // Update ball position
-        const newX = parseInt(ballElement.style.left) + velocity.x;
-        const newY = parseInt(ballElement.style.top) + velocity.y;
-        ballElement.style.left = `${newX}px`;
-        ballElement.style.top = `${newY}px`;
-
-        // Check collision with container walls
-        if (newX <= 0 || newX + ballElement.offsetWidth >= container.offsetWidth) {
-          velocity.x *= -0.9; // Reverse horizontal velocity with damping
-        }
-        if (newY <= 0 || newY + ballElement.offsetHeight >= container.offsetHeight) {
-          velocity.y *= -0.9; // Reverse vertical velocity with damping
-        }
-
-        // Check ball-to-ball collisions
-        balls.forEach(otherBall => {
-          if (otherBall !== ball) {
-            const dx = parseInt(ballElement.style.left) - parseInt(otherBall.element.style.left);
-            const dy = parseInt(ballElement.style.top) - parseInt(otherBall.element.style.top);
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance < 30) {
-              // Adjust the collision radius as needed
-              const collisionNormalX = dx / distance;
-              const collisionNormalY = dy / distance;
-
-              const relativeVelocityX = velocity.x - otherBall.velocity.x;
-              const relativeVelocityY = velocity.y - otherBall.velocity.y;
-
-              const dotProduct = relativeVelocityX * collisionNormalX + relativeVelocityY * collisionNormalY;
-
-              // Elastic collision
-              if (dotProduct < 0) {
-                const impulse = (2 * dotProduct) / 2;
-
-                velocity.x -= impulse * collisionNormalX;
-                velocity.y -= impulse * collisionNormalY;
-
-                otherBall.velocity.x += impulse * collisionNormalX;
-                otherBall.velocity.y += impulse * collisionNormalY;
-              }
-            }
-          }
-        });
+      // Boundary checking
+      if (newX < 0 || newX + ballElement.offsetWidth > container.offsetWidth) {
+          velocity.x *= -1; // Reverse horizontal velocity
+          newX = clamp(newX, 0, container.offsetWidth - ballElement.offsetWidth);
       }
-    });
-  }, 20);
+
+      if (newY < 0 || newY + ballElement.offsetHeight > container.offsetHeight) {
+          velocity.y *= -1; // Reverse vertical velocity
+          newY = clamp(newY, 0, container.offsetHeight - ballElement.offsetHeight);
+      }
+
+      ballElement.style.left = `${newX}px`;
+      ballElement.style.top = `${newY}px`;
+
+      // Check ball-to-ball collisions
+      balls.forEach(otherBall => {
+          if (otherBall !== ball) {
+              const dx = parseInt(ballElement.style.left) - parseInt(otherBall.element.style.left);
+              const dy = parseInt(ballElement.style.top) - parseInt(otherBall.element.style.top);
+              const distance = Math.sqrt(dx * dx + dy * dy);
+
+              if (distance < 30) {
+                  // Adjust the collision radius as needed
+                
+                  const collisionNormalX = dx / distance;
+                  const collisionNormalY = dy / distance;
+
+                  const relativeVelocityX = velocity.x - otherBall.velocity.x;
+                  const relativeVelocityY = velocity.y - otherBall.velocity.y;
+
+                  const dotProduct = relativeVelocityX * collisionNormalX + relativeVelocityY * collisionNormalY;
+
+                  // Elastic collision
+                  if (dotProduct < 0) {
+                      const impulse = (2 * dotProduct) / 2;
+                      const bounceSound = new Audio("bounce.mp3"); // Replace "bounce.mp3" with your actual sound file
+                      bounceSound.play();
+                      changeBallColor(ballElement); // Change color on collision
+
+                      // Remove the audio element when it finishes playing
+                      bounceSound.addEventListener("ended", function() {
+                          bounceSound.remove();
+                      });
+                      velocity.x -= impulse * collisionNormalX;
+                      velocity.y -= impulse * collisionNormalY;
+
+                      otherBall.velocity.x += impulse * collisionNormalX;
+                      otherBall.velocity.y += impulse * collisionNormalY;
+                  }
+              }
+          }
+      });
+  });
+}, 10);
+
+// Helper function to clamp a value between a minimum and maximum
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+// Function to change the color of a ball
+function changeBallColor(ballElement) {
+  const randomColor = getRandomColor();
+  ballElement.style.backgroundColor = randomColor;
+}
+
+// Function to generate a random color
+function getRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
 });
+
